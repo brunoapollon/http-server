@@ -10,9 +10,7 @@ module.exports = {
       return a.id > b.id ? 1 : -1;
     });
 
-    response.writeHead(200, { "Content-Type": "application/json" });
-
-    response.end(JSON.stringify(users));
+    response.send(200, sortedUsers);
   },
 
   getUserById(request, response) {
@@ -21,13 +19,31 @@ module.exports = {
     const user = users.find((user) => user.id === Number(id));
 
     if (!user) {
-      response.writeHead(400, { "Content-Type": "application/json" });
-
-      response.end(JSON.stringify({ error: "User not found!" }));
+      return response.send(400, { error: "User not found!" });
     }
+    response.send(200, user);
+  },
 
-    response.writeHead(200, { "Content-Type": "application/json" });
+  createUser(request, response) {
+    let body = "";
 
-    response.end(JSON.stringify(user));
+    request.on("data", (chunk) => {
+      body += chunk;
+    });
+
+    request.on("end", () => {
+      body = JSON.parse(body);
+
+      const lasUserId = users[users.length - 1].id;
+
+      const newUser = {
+        id: lasUserId + 1,
+        name: body.name,
+      };
+
+      users.push(newUser);
+
+      response.send(200, newUser);
+    });
   },
 };
