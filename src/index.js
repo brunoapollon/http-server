@@ -4,6 +4,7 @@ const url = require("url");
 const { URL } = require("url");
 
 const routes = require("./routes");
+const bodyParser = require("./helpers/bodyParser");
 
 const server = http.createServer((request, response) => {
   // const parsedUrl = url.parse(request.url, true); // não funciona a partir da versão 11 do node
@@ -40,7 +41,11 @@ const server = http.createServer((request, response) => {
       response.end(JSON.stringify(body));
     };
 
-    route.handler(request, response);
+    if (["POST", "PUT", "PATCH"].includes(request.method)) {
+      bodyParser(request, () => route.handler(request, response));
+    } else {
+      route.handler(request, response);
+    }
   } else {
     response.writeHead(404, { "Content-Type": "text/html" });
 
